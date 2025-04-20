@@ -72,4 +72,4 @@ def ask(q: Question):
 # === Route to Serve Chatbot HTML ===
 @app.get("/")
 def serve_chatbot():
-    return FileResponse("static/chatbot.html")
+    return FileResponse("static/chatbotwosta.html")
