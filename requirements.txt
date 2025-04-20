@@ -6,3 +6,4 @@ langchain-google-genai
 google-generativeai
 chromadb
 python-dotenv
+langchain-community
