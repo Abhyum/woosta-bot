@@ -19,7 +19,7 @@ genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 app = FastAPI()
 
 # === Serve Static Files (HTML, JS, CSS) ===
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/Static", StaticFiles(directory="Static"), name="Static")
 
 # === CORS Middleware ===
 app.add_middleware(
@@ -72,4 +72,4 @@ def ask(q: Question):
 # === Route to Serve Chatbot HTML ===
 @app.get("/")
 def serve_chatbot():
-    return FileResponse("static/chatbotwosta.html")
+    return FileResponse("Static/chatbotwosta.html")
