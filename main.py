@@ -12,29 +12,33 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 import os
 
-# === CONFIGURATION ===
-os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
-genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+# === Configuration ===
+api_key = os.getenv("GOOGLE_API_KEY")
+if not api_key:
+    raise EnvironmentError("GOOGLE_API_KEY not set in environment variables.")
+os.environ["GOOGLE_API_KEY"] = api_key
+genai.configure(api_key=api_key)
 
 app = FastAPI()
 
-# === Serve Static Files (HTML, JS, CSS) ===
+# === Serve static files ===
 app.mount("/Static", StaticFiles(directory="Static"), name="Static")
 
 # === CORS Middleware ===
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace with specific domain in production
+    allow_origins=["*"],  # Change to ["https://woostaa.com"] in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# === Load Model and PDF Once ===
+# === Load the model and embeddings ===
 model = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=1)
 embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 
-pdf_path = "woostaachat.pdf"  # PDF must be in root directory
+# === Load and process PDF ===
+pdf_path = "woostaachat.pdf"
 loader = PyPDFLoader(pdf_path)
 pages = loader.load_and_split()
 
@@ -57,11 +61,11 @@ Answer:
 """
 prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
 
-# === Request Model ===
+# === Pydantic model for request ===
 class Question(BaseModel):
     question: str
 
-# === Chat API Endpoint ===
+# === POST endpoint for answering questions ===
 @app.post("/ask")
 def ask(q: Question):
     docs = retriever.get_relevant_documents(q.question)
@@ -69,7 +73,7 @@ def ask(q: Question):
     result = chain({"input_documents": docs, "question": q.question}, return_only_outputs=True)
     return {"answer": result["output_text"]}
 
-# === Route to Serve Chatbot HTML ===
+# === Serve chatbot UI ===
 @app.get("/")
 def serve_chatbot():
     return FileResponse("Static/chatbotwosta.html")
